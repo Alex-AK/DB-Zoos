@@ -19,18 +19,23 @@ server.use(express.json());
 
 // post, name required - return id of new animal with 201
 server.post('/api/zoos', (req, res) => {
-  const animal = req.body;
+  const newAnimal = req.body;
   const { name } = req.body;
 
   if (!name) {
-    res.status(500).json({ message: 'Name is required' });
+    res.status(500).json({ Error: 'Name is required' });
   } else {
-    db.insert(animal)
-      .then()
+    db('zoos')
+      .insert(newAnimal)
+      .then(animal =>
+        res.status(201).json({ Message: 'Successfully added', newAnimal })
+      )
       .catch(err =>
-        res.status(500).json({ message: 'Unexpected error, please try again.' })
+        res.status(500).json({
+          Message:
+            'Unexpected error, unique name is required, please try again.'
+        })
       );
-    // use SQL to post to table
   }
 });
 
@@ -46,6 +51,21 @@ server.get('/api/zoos', (req, res) => {
 });
 
 // get by id - return single animal with matching id
+server.get('/api/zoos/:id', (req, res) => {
+  const id = req.params.id;
+  db('zoos')
+    .where({ id })
+    .then(animal => {
+      if (!animal) {
+        res.status(404).json({ Message: 'No animal with id found.' });
+      } else {
+        res.status(200).json(animal);
+      }
+    })
+    .catch(err =>
+      res.status(500).json({ message: 'Unexpected error, please try again.' })
+    );
+});
 
 // update by id, name and id required - return updated object from db
 
