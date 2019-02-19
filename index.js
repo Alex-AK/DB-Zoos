@@ -63,13 +63,52 @@ server.get('/api/zoos/:id', (req, res) => {
       }
     })
     .catch(err =>
-      res.status(500).json({ message: 'Unexpected error, please try again.' })
+      res.status(500).json({ Message: 'Unexpected error, please try again.' })
     );
 });
 
 // update by id, name and id required - return updated object from db
 
+server.put('/api/zoos/:id', (req, res) => {
+  const id = req.params.id;
+  const updatedAnimal = req.body;
+  const updatedAnimalWithId = { ...updatedAnimal, id };
+  const { name } = req.body;
+
+  if (!name) {
+    res.status(500).json({ Error: 'Name is required' });
+  } else {
+    db('zoos')
+      .where({ id })
+      .update(updatedAnimal)
+      .then(count => {
+        if (count === 0) {
+          return res.status(404).json({ Error: 'Id not found' });
+        } else {
+          res
+            .status(200)
+            .json({ Message: 'Updated successfully', updatedAnimalWithId });
+        }
+      })
+      .catch(err =>
+        res.status(500).json({ message: 'Unexpected error, please try again.' })
+      );
+  }
+});
+
 // delete by id, id required - return ?
+server.delete('/api/zoos/:id', (req, res) => {
+  const id = req.params.id;
+  db('zoos')
+    .where({ id: id })
+    .delete()
+    .then(() =>
+      res
+        .status(200)
+        .json({ Message: `Item with id of ${id} was successfully deleted` })
+    )
+    .catch(err => console.log(err));
+});
 
 const port = 3300;
 server.listen(port, function() {
