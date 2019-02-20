@@ -27,9 +27,14 @@ server.post('/api/zoos', (req, res) => {
   } else {
     db('zoos')
       .insert(newAnimal)
-      .then(animal =>
-        res.status(201).json({ Message: 'Successfully added', newAnimal })
-      )
+      .then(id => {
+        console.log(id);
+        db('zoos')
+          .where({ id: id[0] })
+          .then(animal => {
+            res.status(201).json(animal);
+          });
+      })
       .catch(err =>
         res.status(500).json({
           Message:
@@ -83,7 +88,7 @@ server.put('/api/zoos/:id', (req, res) => {
       .update(updatedAnimal)
       .then(count => {
         if (count === 0) {
-          return res.status(404).json({ Error: 'Id not found' });
+          res.status(404).json({ Error: 'Id not found' });
         } else {
           res
             .status(200)
@@ -102,11 +107,15 @@ server.delete('/api/zoos/:id', (req, res) => {
   db('zoos')
     .where({ id: id })
     .delete()
-    .then(() =>
-      res
-        .status(200)
-        .json({ Message: `Item with id of ${id} was successfully deleted` })
-    )
+    .then(count => {
+      if (count === 0) {
+        res.status(404).json({ Error: 'Id not found' });
+      } else {
+        res
+          .status(200)
+          .json({ Message: `Item with id of ${id} was successfully deleted` });
+      }
+    })
     .catch(err => console.log(err));
 });
 
